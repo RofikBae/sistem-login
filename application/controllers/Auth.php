@@ -97,4 +97,15 @@ class Auth extends CI_Controller
         $this->session->unset_userdata('role_id');
         redirect('auth');
     }
+
+    public function blocked()
+    {
+        $data['title'] = 'ERROR 404!';
+        $data['user'] = $this->db->get_where('user', ['email' => $this->session->userdata('email')])->row_array();
+        $this->load->view('templates/header.php', $data);
+        $this->load->view('templates/sidebar.php', $data);
+        $this->load->view('templates/topbar.php', $data);
+        $this->load->view('auth/blocked.php');
+        $this->load->view('templates/footer.php');
+    }
 }
