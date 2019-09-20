@@ -6,7 +6,7 @@
 
 <div class="card mb-3 col-lg-5">
     <div class="row no-gutters">
-        <div class="col-md-4">
+        <div class="col profile">
             <img src="<?= base_url('assets/img/profile/') . $user['image']; ?>" class="card-img">
         </div>
         <div class="col-md-8">
@@ -24,3 +24,9 @@
 
 </div>
 <!-- End of Main Content -->
+
+<style>
+    .thumbnail {
+        height: 150px auto;
+    }
+</style>

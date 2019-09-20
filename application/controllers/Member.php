@@ -42,8 +42,10 @@ class Member extends CI_Controller
             $upload_image = $_FILES['image']['name'];
             if ($upload_image) {
                 $config['allowed_types']        = 'gif|jpg|png|jpeg';
-                $config['max_size']             = 2048;
+                $config['max_size']             = 10240;
                 $config['upload_path']          = './assets/img/profile';
+                // $config['min_width']            = 150;
+                // $config['min_height']            = 150;
 
                 $this->load->library('upload', $config);
 

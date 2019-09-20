@@ -1,0 +1,11 @@
+.profile {
+	width: 150px;
+	height: 150px;
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.profile img {
+	width: 150px;
+	align-content: center;
+}
