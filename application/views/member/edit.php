@@ -1,14 +1,7 @@
-<!-- Begin Page Content -->
-<div class="container-fluid">
-
-    <!-- Page Heading -->
-    <h1 class="h3 mb-4 text-gray-800"><?= $title; ?></h1>
-
-
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-5">
 
-            <?= form_open_multipart('user/edit'); ?>
+            <?= form_open_multipart('member/edit'); ?>
             <div class="form-group row">
                 <label for="email" class="col-sm-2 col-form-label">Email</label>
                 <div class="col-sm-10">
@@ -41,7 +34,7 @@
 
             <div class="form-group row justify-content-end">
                 <div class="col-sm-10">
-                    <button type="submit" class="btn btn-primary">Edit</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </div>
 
@@ -54,8 +47,8 @@
 
 
 
-</div>
-<!-- /.container-fluid -->
+    </div>
+    <!-- /.container-fluid -->
 
-</div>
-<!-- End of Main Content --> 
+    </div>
+    <!-- End of Main Content -->
