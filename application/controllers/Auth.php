@@ -126,7 +126,7 @@ class Auth extends CI_Controller
         $this->email->initialize($config);
 
         if ($type == 'verify') {
-            $this->email->from('rofikmail98@gmail.com');
+            $this->email->from('rofikmail98@gmail.com', 'Sistem Login');
             $this->email->to($email);
             $this->email->subject('User Activation');
             $message = '<!DOCTYPE html><html lang="en"><head>
