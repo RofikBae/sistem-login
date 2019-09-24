@@ -126,9 +126,9 @@ class Auth extends CI_Controller
         $this->email->initialize($config);
 
         if ($type == 'verify') {
-            $this->email->from('rofikmail98@gmail.com', 'Sistem Login');
+            $this->email->from('rofikmail98@gmail.com', 'MyApp');
             $this->email->to($email);
-            $this->email->subject('User Activation');
+            $this->email->subject('Reset Password');
             $message = '<!DOCTYPE html><html lang="en"><head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -137,20 +137,33 @@ class Auth extends CI_Controller
             <body>';
             $message .= '<p>Thanks for signing up!<?p>';
             $message .= '<p>To get started, click the link below to confirm your account.<?p>';
-            $message .= '<p><strong><a href="' . base_url() . '/auth/verify?email=' . $email . '&token=' . $token . '">Confirm your account</a></strong><?p>';
+            $message .= '<p><strong><a href="' . base_url() . '/auth/verify?email=' . $email . '&token=' . urlencode($token) . '">Confirm your account</a></strong><?p>';
             $message .= '</body></html>';
             $this->email->message($message);
+        } elseif ($type == 'forgot') {
+            $this->email->from('rofikmail98@gmail.com', 'MyApp');
+            $this->email->to($email);
+            $this->email->subject('User Activation');
+            $message = '<!DOCTYPE html><html lang="en"><head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            </head>
+            <body><center>';
+            $message .= '<p>Click the link below to reset your password.<?p>';
+            $message .= '<p><strong><a href="' . base_url() . '/auth/resetpassword?email=' . $email . '&token=' . urlencode($token) . '">Reset password</a></strong><?p>';
+            $message .= '<?center></body></html>';
+            $this->email->message($message);
+
+            if ($this->email->send()) {
+                $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">Check your email to reset your password</div>');
+                redirect('auth/forgotpassword');
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Make sure the email that you use is active!</div>');
+                redirect('auth/forgotpassword');
+            }
         } else {
             # code...
-        }
-
-        if ($this->email->send()) {
-            $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">Registration success. Check your email for activation!</div>');
-            redirect('auth');
-        } else {
-            $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Registration failed. 
-            Make sure the email you are using is active!</div>');
-            redirect('auth');
         }
     }
 
@@ -204,5 +217,76 @@ class Auth extends CI_Controller
         $this->load->view('templates/topbar.php', $data);
         $this->load->view('auth/blocked.php');
         $this->load->view('templates/footer.php');
+    }
+
+    public function forgotPassword()
+    {
+        $this->form_validation->set_rules('email', 'Email', 'required|valid_email|trim');
+
+        if ($this->form_validation->run() == false) {
+            $data['title'] = 'Forgot password';
+            $this->load->view('templates/auth-header.php', $data);
+            $this->load->view('auth/forgot.php');
+            $this->load->view('templates/auth-footer.php');
+        } else {
+            $email = $this->input->post('email');
+            $user = $this->db->get_where('user', ['email' => $email])->row_array();
+            if ($user) {
+                if ($user['is_active'] == 0) {
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Your email is not activate yet. Activate your email!</div>');
+                    redirect('auth/forgotpassword');
+                } else {
+                    $token = base64_encode(random_bytes(32));
+                    $user_token = [
+                        'email' => $email,
+                        'token' => $token,
+                        'date_created' => time()
+                    ];
+
+                    $this->db->insert('user_token', $user_token);
+                    $this->_sendEmail($token, 'forgot');
+                }
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Your email is not registered. Register your email!</div>');
+                redirect('auth/forgotpassword');
+            }
+        }
+    }
+
+    public function resetPassword()
+    {
+        $token = $this->input->get('token');
+        $email = $this->input->get('email');
+        $user = $this->db->get_where('user', ['email' => $email]);
+
+        if ($user) {
+            $user_token = $this->db->get_where('user_token', ['token' => $token]);
+
+            if ($user_token) {
+                $this->session->set_userdata('email_reset', $email);
+                $this->form_validation->set_rules('password', 'Password', 'required|trim|matches[repeatPassword]|min_length[3]');
+                $this->form_validation->set_rules('repeatPassword', 'Repeat Password', 'required|trim|matches[password]');
+
+                if ($this->form_validation->run() == false) {
+                    $data['title'] = 'Reset Password';
+                    $this->load->view('templates/auth-header.php', $data);
+                    $this->load->view('auth/reset.php');
+                    $this->load->view('templates/auth-footer.php');
+                } else {
+                    $password = password_hash($this->input->post('password'), PASSWORD_DEFAULT);
+                    $this->db->set('password', $password);
+                    $this->db->where('email', $this->session->userdata('email_reset'));
+                    $this->db->update('user');
+                    $this->session->set_flashdata('message', '<div class="alert alert-success" role="alert">Your password has been reseted. Please login!</div>');
+                    redirect('auth');
+                }
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Invalid token!</div>');
+                redirect('auth/forgotpassword');
+            }
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Invalid email. Register your email!</div>');
+            redirect('auth/forgotpassword');
+        }
     }
 }
